@@ -1,0 +1,20 @@
+﻿;Russian;English
+
+%AddCard%;добавить карту;add card
+%Premium%;Премиум;Premium
+%PremiumInfo%;расширенные возможности;empower your app
+%PurchaseFailed%;не удалось совершить покупку;purchase failed
+%Sync%;синхронизация;cloud sync
+%SyncReady%;еще не выполнялась;not synchronized yet
+%Connecting%;соединение...;connecting...
+%AuthenticationError%;ошибка авторизации;authorization error
+%LoadingData%;загрузка данных...;loading data...
+%ResolvingData%;разрешение конфликтов...;resolving conflicts...
+%Synced%;завершено;completed
+%SaveFailed%;ошибка при сохранении;cloud save failed
+%LoadFailed%;ошибка при загрузке;cloud load failed
+%NothingToSync%;данные отсутствуют;nothing to sync
+%TokensNotEqual%;ключи шифрования не совпадают;encryption keys are not equal
+%ChangePattern%;сменить граф. ключ;change pattern
+%DeleteLocalData%;удалить данные профиля;delete profile data
+%DeleteCloudData%;удалить данные в облаке;delete cloud data

@@ -1,0 +1,11 @@
+﻿;Russian;English
+
+%CardName%;название карты;card name
+%CardNameTip1%;(3-20 символов);(3-20 symbols)
+%CardNameTip2%;например, Банк Вселенной или Cashback 10%;for example, Universe Bank or Cashback 10%
+%CardNumber%;последние 4 цифры номера;the last 4 digits
+%CardComments%;комментарий;comments
+%CardCommentsTip1%;(необязательное поле, до 40 символов);(optional, up to 40 symbols)
+%CardCommentsTip2%;в целях безопасности не указывайте ваши персональные данные: имя и фамилию, адрес, CVV2 или номер карты;for security reasons do not provide any personal information as your name, address, card number or CVV2
+%CardColor%;цвет карты;card color
+%Next%;далее;next

@@ -1,0 +1,6 @@
+lastUpgrade=00900
+proj.AppId=381206567429
+android.SetupDone=true
+ios.ClientId=381206567429-de067tgmt8tpm27kn7ggmu2kk5g6092f.apps.googleusercontent.com
+ios.BundleId=com.BlackRainbowApps.PinKeeper
+ios.SetupDone=true
