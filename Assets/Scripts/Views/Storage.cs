@@ -10,6 +10,7 @@ namespace Assets.Scripts.Views
         public GameObject[] Pages;
         public SelectButton[] Paging;
         public GameObject PremiumButton;
+        public GameObject RestoreButton;
         public GameObject SyncButton;
         
         private int _page;
@@ -54,7 +55,20 @@ namespace Assets.Scripts.Views
                 Destroy(child.gameObject);
             }
 
+            #if UNITY_ANDROID
+
+            RestoreButton.SetActive(false);
+
             var size = Profile.Instance.Premium ? new Vector2(5, 7) : new Vector2(1, 6);
+
+            #endif
+
+            #if UNITY_IPHONE
+
+            var size = Profile.Instance.Premium ? new Vector2(5, 7) : new Vector2(1, 5);
+
+            #endif
+
             var slot = 0;
 
             for (var x = 0; x < size.x; x++)
@@ -97,6 +111,12 @@ namespace Assets.Scripts.Views
         {
             PremiumButton.SetActive(!premium);
             SyncButton.SetActive(premium);
+
+            #if UNITY_IPHONE
+            
+            RestoreButton.SetActive(!premium);
+
+            #endif
 
             foreach (var p in Paging)
             {

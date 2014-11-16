@@ -3,7 +3,9 @@
 %AddCard%;добавить карту;add card
 %Premium%;Премиум;Premium
 %PremiumInfo%;расширенные возможности;empower your app
-%PurchaseFailed%;не удалось совершить покупку;purchase failed
+%Restore%;Восстановить;Restore
+%RestoreInfo%;приобретенные покупки;purchased items
+%PurchaseFailed%;произошла ошибка;purchase failed
 %Sync%;синхронизация;cloud sync
 %SyncReady%;еще не выполнялась;not synchronized yet
 %Connecting%;соединение...;connecting...

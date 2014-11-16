@@ -28,9 +28,10 @@ namespace Assets.Scripts
             };
 
             _openIabClient = new OpenIABClient(options);
-            _openIabClient.PurchaseSucceeded += PurchaseSucceeded;
-            _openIabClient.PurchaseFailed += PurchaseFailed;
-        
+            _openIabClient.Purchased += Purchased;
+            _openIabClient.Restored += Purchased;
+            _openIabClient.Failed += Failed;
+
             _openIabClient.MapSku(PlanformDependedSettings.StoreName, new Dictionary<string, string>
             {
                 { SkuPremium, SkuPremium }
@@ -41,31 +42,38 @@ namespace Assets.Scripts
         {
             PremiumInfo.SetLocalizedText("%Connecting%");
 
-#if UNITY_EDITOR
+            #if UNITY_EDITOR
 
-            PurchaseSucceeded("TEST=0000");
+            Purchased("TEST=0000");
         
-#else
+            #else
 
-        _openIabClient.PurchaseProduct(SkuPremium);
+            _openIabClient.PurchaseProduct(SkuPremium);
 
-        #endif
+            #endif
         }
 
-        private void PurchaseSucceeded(Purchase purchase)
+        public void Restore()
+        {
+            PremiumInfo.SetLocalizedText("%Connecting%");
+
+            _openIabClient.Restore();
+        }
+
+        private void Purchased(Purchase purchase)
         {
             if (purchase.Sku == SkuPremium)
             {
-                PurchaseSucceeded(purchase.Token);
+                Purchased(purchase.Token);
             }
         }
 
-        private void PurchaseSucceeded(string token)
+        private void Purchased(string token)
         {
             GetComponent<PatternLock>().Open(TweenDirection.Right, new Task { Type = TaskType.CreateToken, Token = new ProtectedValue(token) });      
         }
 
-        private void PurchaseFailed(string error)
+        private void Failed(string error)
         {
             Debug.Log(GetType() + ": " + error);
             PremiumInfo.SetLocalizedText("%PurchaseFailed%");

@@ -5,27 +5,28 @@ using OnePF;
 
 namespace Assets.Scripts.Common
 {
-    internal enum StoreAction
-    {
-        Buy,
-        Restore
-    }
-
+    // ReSharper disable InconsistentNaming
     public class OpenIABClient : IDisposable
+    // ReSharper restore InconsistentNaming
     {
         public static bool EnableLog = true;
-        public event Action<Purchase> PurchaseSucceeded = purchase => { }; 
-        public event Action<string> PurchaseFailed = error => { };
-        public event Action<Purchase> ConsumePurchaseSucceeded = purchase => { };
-        public event Action<string> ConsumePurchaseFailed = error => { };
-        public event Action<string> RestoreFailed = error => { };
-        public event Action RestoreSucceeded = () => { };
 
-        private bool _initialized;
-        private bool _busy;
+        public event Action<Purchase> Purchased = purchase => { };
+        public event Action<Purchase> Consumed = purchase => { };
+        public event Action RestoreCompleted = () => { };
+        public event Action<string> Restored = sku => { };
+        public event Action<string> Failed = error => { };
+
         private readonly Options _options;
+        private State _state = State.Unknown;
         private string _sku;
-        private StoreAction _action;
+
+        private enum State
+        {
+            Unknown,
+            Ready,
+            Busy
+        }
 
         public OpenIABClient(Options options)
         {
@@ -42,17 +43,28 @@ namespace Assets.Scripts.Common
 
             if (UnityEngine.Object.FindObjectOfType<OpenIABEventManager>() == null)
             {
-                throw new Exception("OpenIABEventManager component missed");
+                throw new Exception("OpenIABEventManager component missed, please add it to game scene");
             }
 
             OpenIABEventManager.billingSupportedEvent += BillingSupportedEvent;
-            OpenIABEventManager.billingNotSupportedEvent += BillingNotSupportedEvent;
             OpenIABEventManager.queryInventorySucceededEvent += QueryInventorySucceededEvent;
-            OpenIABEventManager.queryInventoryFailedEvent += QueryInventoryFailedEvent;
-            OpenIABEventManager.purchaseSucceededEvent += PurchaseSucceededEvent;
-            OpenIABEventManager.purchaseFailedEvent += PurchaseFailedEvent;
-            OpenIABEventManager.consumePurchaseSucceededEvent += ConsumePurchaseSucceededEvent;
-            OpenIABEventManager.consumePurchaseFailedEvent += ConsumePurchaseFailedEvent;
+
+            OpenIABEventManager.purchaseSucceededEvent += purchase => CompleteTask(Purchased, "purchaseSucceededEvent", purchase);
+            OpenIABEventManager.consumePurchaseSucceededEvent += purchase => CompleteTask(Consumed, "consumePurchaseSucceededEvent", purchase);
+            OpenIABEventManager.transactionRestoredEvent += sku => CompleteTask(Restored, "transactionRestoredEvent", sku);
+            OpenIABEventManager.restoreSucceededEvent += () => CompleteTask(RestoreCompleted, "restoreSucceededEvent");
+
+            OpenIABEventManager.billingNotSupportedEvent += error => { CompleteTask(Failed, "billingNotSupportedEvent", error); _state = State.Unknown; };
+            OpenIABEventManager.queryInventoryFailedEvent += error => CompleteTask(Failed, "queryInventoryFailedEvent", error);
+            OpenIABEventManager.purchaseFailedEvent += (number, error) => CompleteTask(Failed, "purchaseFailedEvent", error);
+            OpenIABEventManager.consumePurchaseFailedEvent += error => CompleteTask(Failed, "consumePurchaseFailedEvent", error);
+            OpenIABEventManager.restoreFailedEvent += error => CompleteTask(Failed, "restoreFailedEvent", error);
+
+            #if !UNITY_EDITOR
+
+            OpenIAB.enableDebugLogging(true);
+
+            #endif
         }
 
         public void MapSku(string storeName, Dictionary<string, string> map)
@@ -64,30 +76,34 @@ namespace Assets.Scripts.Common
             }
         }
 
+        public bool Busy
+        {
+            get { return _state == State.Busy; }
+        }
+
         public void PurchaseProduct(string sku)
         {
             WriteLog("starting purchase: {0}", sku);
 
-            if (_busy)
+            if (_state == State.Busy)
             {
-                ActionCompleted(PurchaseFailed, "busy");
-
-                return;
-            }
-
-            _sku = sku;
-            _action = StoreAction.Buy;
-            _busy = true;
-
-            if (_initialized)
-            {
-                WriteLog("quering inventory...");
-                OpenIAB.queryInventory();
+                CompleteTask(Failed, "can't purchase product", "busy");
             }
             else
             {
-                WriteLog("initializing OpenIAB...");
-                OpenIAB.init(_options);
+                _sku = sku;
+                _state = State.Busy;
+
+                if (_state == State.Ready)
+                {
+                    WriteLog("quering inventory...");
+                    OpenIAB.queryInventory();
+                }
+                else
+                {
+                    WriteLog("initializing OpenIAB...");
+                    OpenIAB.init(_options);
+                }
             }
         }
 
@@ -95,46 +111,44 @@ namespace Assets.Scripts.Common
         {
             WriteLog("starting consume: {0}", purchase.Sku);
 
-            if (_busy)
+            switch (_state)
             {
-                ActionCompleted(ConsumePurchaseFailed, "busy");
-
-                return;
+                case State.Busy:
+                    CompleteTask(Failed, "can't consume product", "busy");
+                    break;
+                case State.Ready:
+                    _state = State.Busy;
+                    OpenIAB.consumeProduct(purchase);
+                    break;
+                default:
+                    CompleteTask(Failed, "ConsumeProduct", "not initialized");
+                    break;
             }
-
-            if (!_initialized)
-            {
-                ActionCompleted(ConsumePurchaseFailed, "not initialized");
-
-                return;
-            }
-
-            _busy = true;
-            
-            OpenIAB.consumeProduct(purchase);
         }
 
         public void Restore()
         {
             WriteLog("starting restore...");
 
-            if (_busy)
+            if (_state == State.Busy)
             {
-                ActionCompleted(RestoreFailed, "busy");
-
-                return;
-            }
-
-            _action = StoreAction.Restore;
-            _busy = true;
-
-            if (_initialized)
-            {
-                OpenIAB.queryInventory();
+                CompleteTask(Failed, "can't restore purchases", "busy");
             }
             else
             {
-                OpenIAB.init(_options);
+                _sku = null;
+                _state = State.Busy;
+
+                if (_state == State.Ready)
+                {
+                    WriteLog("quering inventory...");
+                    OpenIAB.queryInventory();
+                }
+                else
+                {
+                    WriteLog("initializing OpenIAB...");
+                    OpenIAB.init(_options);
+                }
             }
         }
 
@@ -144,106 +158,25 @@ namespace Assets.Scripts.Common
             OpenIAB.unbindService();
         }
 
-        private void BillingSupportedEvent()
+        private void CompleteTask(Action<string> action, string source, string param)
         {
-            _initialized = true;
-
-            WriteLog("billing supported, quering inventory...");
-            OpenIAB.queryInventory();
-        }
-
-        private void BillingNotSupportedEvent(string error)
-        {
-            WriteLog("billing not supported");
-            ActionCompleted(PurchaseFailed, error);
-        }
-
-        private void QueryInventorySucceededEvent(Inventory inventory)
-        {
-            var purchases = inventory.GetAllPurchases();
-
-            WriteLog("query inventory succeeded, purchases count: {0}", purchases.Count);
-
-            if (purchases.Any())
-            {
-                WriteLog("purchases: {0}", string.Join(", ", purchases.Select(i => i.Sku).ToArray()));
-            }
-
-            switch (_action)
-            {
-                case StoreAction.Buy:
-                {
-                    if (inventory.HasPurchase(_sku))
-                    {
-                        ActionCompleted(PurchaseSucceeded, inventory.GetPurchase(_sku));
-                    }
-                    else
-                    {
-                        WriteLog("purchasing product: {0}", _sku);
-                        OpenIAB.purchaseProduct(_sku);
-                    }
-
-                    break;
-                }
-                case StoreAction.Restore:
-                {
-                    WriteLog("restoring purchases...");
-
-                    foreach (var purchase in purchases)
-                    {
-                        WriteLog("restoring: {0}", purchase.Sku);
-                        ActionCompleted(PurchaseSucceeded, purchase);
-                    }
-
-                    RestoreSucceeded();
-
-                    break;
-                }
-            }
-        }
-
-        private void QueryInventoryFailedEvent(string error)
-        {
-            WriteLog("query inventory failed: {0}", error);
-            ActionCompleted(PurchaseFailed, error);
-        }
-
-        private void PurchaseSucceededEvent(Purchase purchase)
-        {
-            WriteLog("purchase succeeded, json: {0})", purchase.OriginalJson);
-            ActionCompleted(PurchaseSucceeded, purchase);
-        }
-
-        private void PurchaseFailedEvent(int error, string message)
-        {
-            WriteLog("purchase failed: {0}", message);
-            ActionCompleted(PurchaseFailed, message);
-        }
-
-        private void ConsumePurchaseSucceededEvent(Purchase purchase)
-        {
-            WriteLog("consume succeeded, json: {0}", purchase.Sku);
-            ActionCompleted(ConsumePurchaseSucceeded, purchase);
-        }
-
-        private void ConsumePurchaseFailedEvent(string error)
-        {
-            WriteLog("purchase failed: {0}", error);
-            ActionCompleted(ConsumePurchaseFailed, error);
-        }
-
-        private void ActionCompleted(Action<string> action, string param)
-        {
-            WriteLog("action completed, params: {0}", param);
-            _busy = false;
+            _state = State.Ready;
+            WriteLog("{0}, param: {1}", source, param);
             action(param);
         }
 
-        private void ActionCompleted(Action<Purchase> action, Purchase purchase)
+        private void CompleteTask(Action<Purchase> action, string @event, Purchase purchase)
         {
-            WriteLog("action completed, purchase json: {0}", purchase.OriginalJson);
-            _busy = false;
+            _state = State.Ready;
+            WriteLog("{0}, json: {1}", @event, purchase.OriginalJson);
             action(purchase);
+        }
+
+        private void CompleteTask(Action action, string message)
+        {
+            _state = State.Ready;
+            WriteLog(message);
+            action();
         }
 
         private void WriteLog(string message, params object[] args)
@@ -253,5 +186,64 @@ namespace Assets.Scripts.Common
                 UnityEngine.Debug.Log(GetType().Name + ": " + string.Format(message, args));
             }
         }
+
+        #region Event handlers
+
+        private void BillingSupportedEvent()
+        {
+            WriteLog("billing supported, quering inventory...");
+            OpenIAB.queryInventory();
+        }
+
+        private void QueryInventorySucceededEvent(Inventory inventory)
+        {
+            var purchases = inventory.GetAllPurchases();
+
+            if (purchases.Any())
+            {
+                WriteLog("query inventory succeeded, purchases owned: {0}", string.Join(", ", purchases.Select(i => i.Sku).ToArray()));
+
+                if (_sku == null)
+                {
+                    foreach (var purchase in purchases)
+                    {
+                        WriteLog("restoring owned purchase: {0}", purchase.Sku);
+                        Purchased(purchase);
+                    }
+                }
+            }
+            else
+            {
+                WriteLog("query inventory succeeded, owned purchases not found");
+            }
+
+
+            #if UNITY_IPHONE
+
+            if (_sku == null)
+            {
+                WriteLog("restoring transactions (iOS)...");
+                OpenIAB.restoreTransactions();
+            }
+
+            #endif
+
+            #if UNITY_ANDROID
+
+            if (_sku == null || inventory.HasPurchase(_sku))
+            {
+                CompleteTask(RestoreCompleted, "purchases successfully restored (inventory check)");
+            }
+
+            #endif
+
+            else
+            {
+                WriteLog("purchasing product: {0}", _sku);
+                OpenIAB.purchaseProduct(_sku);
+            }
+        }
+
+        #endregion
     }
 }
