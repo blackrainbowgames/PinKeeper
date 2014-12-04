@@ -211,6 +211,16 @@ namespace Assets.Scripts.Common
                         Purchased(purchase);
                     }
                 }
+				else
+                {
+                    var purchase = purchases.SingleOrDefault(i => i.Sku == _sku);
+
+                    if (purchase != null)
+                    {
+                        WriteLog("restoring owned purchase: {0}", purchase.Sku);
+                        Purchased(purchase);
+                    }
+                }
             }
             else
             {
