@@ -9,8 +9,9 @@ namespace Assets.Scripts
     public class GameShop : Script
     {
         public UILabel PremiumInfo;
-        private const string SkuPremium = "pinkeeper.premium";
         private OpenIABClient _openIabClient;
+        private const string SkuPremium = PlanformDependedSettings.SkuPremium;
+
 
         public void Start()
         {
