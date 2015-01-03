@@ -9,7 +9,7 @@ namespace Assets.Scripts
     public class GameShop : Script
     {
         public UILabel PremiumInfo;
-        private const string SkuPremium = "pinkeeper_premium";
+        private const string SkuPremium = "pinkeeper.premium";
         private OpenIABClient _openIabClient;
 
         public void Start()

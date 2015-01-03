@@ -85,7 +85,7 @@ namespace Assets.Scripts
 
         private void StateLoaded(bool success, int slot, byte[] data)
         {
-            if (!success)
+            if (!success && Profile.Instance.SyncTime != null)
             {
                 WriteSyncMessage("%LoadFailed%");
             }

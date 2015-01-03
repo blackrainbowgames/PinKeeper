@@ -1,37 +1,40 @@
 ﻿using System;
 using UnityEngine;
 
-public class TouchSlider : MonoBehaviour
+namespace Assets.Scripts
 {
-    public MonoBehaviour Listener;
-    public string ListenerMethodLeft;
-    public string ListenerMethodRight;
-
-    private bool _pressed;
-    private Vector2 _position;
-
-	public void Update()
+    public class TouchSlider : Script
     {
-        if (Input.GetMouseButtonDown(0) && collider.bounds.Contains(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
-        {
-            _position = Input.mousePosition;
-            _pressed = true;
-        }
+        public MonoBehaviour Listener;
+        public string ListenerMethodLeft;
+        public string ListenerMethodRight;
 
-        if (Input.GetMouseButtonUp(0))
-        {
-            _pressed = false;
-        }
+        private bool _pressed;
+        private Vector2 _position;
 
-        if (_pressed)
+        public void Update()
         {
-            var delta = _position.x - Input.mousePosition.x;
-
-            if (Math.Abs(delta) > 200 * Camera.main.aspect)
+            if (Input.GetMouseButtonDown(0) && collider.bounds.Contains(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
             {
-                Listener.SendMessage(delta > 0 ? ListenerMethodLeft : ListenerMethodRight);
+                _position = Input.mousePosition;
+                _pressed = true;
+            }
+
+            if (Input.GetMouseButtonUp(0))
+            {
                 _pressed = false;
             }
+
+            if (_pressed)
+            {
+                var delta = _position.x - Input.mousePosition.x;
+
+                if (Math.Abs(delta) > 200 * Camera.main.aspect)
+                {
+                    Listener.SendMessage(delta > 0 ? ListenerMethodLeft : ListenerMethodRight);
+                    _pressed = false;
+                }
+            }
         }
-	}
+    }
 }

@@ -7,7 +7,7 @@ namespace Assets.Scripts
     public static class PlanformDependedSettings
     {
         public static string StoreName = OpenIAB_Android.STORE_GOOGLE;
-        public const string StorePublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlq7Fz0J/hbVdmV52ZTbLSnPRh6UB6vT/XmvCPqH6rwXbqbSKL2E1cqqcPfiOFB3Uei5rEGrRxcpGPPwV6lOxnnb3lVqIgMigu4jcer+6duhcbN3ZRyrmaFcBEo8MezkdClyNTTrBfTnkvmc1T0bg3WjdgOAP+/MQq0W14CcaWPUVPSlBdQlhhcWbAWcRv37S35N/LbXEZV/BwC+1EwLcJISxkF9SHnkec89egoY0acSLLZmvYZm4rxU/UbrbJaaFEF+BFYlufxhPTQtN5xrAHAJGcC69SUaJL/B2/nznQ1MSD+vgkNo1Gb+HrT5MRwsIyqwRSVOUjj8tmMKfZGN9GQIDAQAB";
+        public const string StorePublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgg6Z1KICLBmQnTd5CV/ivXjp8Jxg4FOeuFAu2tgQBxzcSnC0UMXug7VoB/9CU6RNznKQuMYKw+UoDl1la22SRg0Q7KxPFQ+rbmESM5eYSTh7O80YKeW4wgJKE4ZbGrnJbIZXgfw4c/ufZQY8/n+WrzXDgYYj0u2/PZsObGvGXjRwag7D7lhmmkQ89md6ukT8ChCgxbeFV5X3IPPhCxmdM/ptjRMUNCNnK4hhFCFKh16JioSry7OTJmeCYTZtvpVojSlzSxxB6jUZJMn5rfTqAaKtyVBX14Qgg+QyWYHaIelgp9wSJrxFaPn97bQsgK6Ophpz4Eh/JvpGfm1igZ34SwIDAQAB";
     }
 
     #endif

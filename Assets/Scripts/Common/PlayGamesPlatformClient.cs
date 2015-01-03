@@ -72,6 +72,8 @@ namespace Assets.Scripts.Common
         {
             Busy = false;
 
+            WriteLog("state loaded: success = " + success);
+
             if (data == null)
             {
                 WriteLog("state loaded: slot is empty");

@@ -133,7 +133,7 @@ namespace Assets.Scripts.Views
 
         public void SlideLeft()
         {
-            if (_page < Pages.Length - 1)
+            if (_page < Pages.Length - 1 && Profile.Instance.Premium)
             {
                 Paging[_page + 1].Pressed = true;
             }
@@ -141,7 +141,7 @@ namespace Assets.Scripts.Views
 
         public void SlideRight()
         {
-            if (_page > 0)
+            if (_page > 0 && Profile.Instance.Premium)
             {
                 Paging[_page - 1].Pressed = true;
             }
