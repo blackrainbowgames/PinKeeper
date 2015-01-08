@@ -2,6 +2,7 @@
 using System.Text;
 using Assets.Scripts.Common;
 using Assets.Scripts.Views;
+using GooglePlayGames.BasicApi.SavedGame;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -10,90 +11,104 @@ namespace Assets.Scripts
     {
         public UILabel SyncInfo;
 
-        private readonly PlayGamesPlatformClient _cloud = new PlayGamesPlatformClient();
+        private readonly GamesServicesClient _gpgs = new GamesServicesClient();
         private bool _storageChanged;
-        private string _errorMessage;
+        private string _exception;
         private const byte NullByte = 255;
+        private const string SaveName = "PinKeeper2";
+        private bool _reset;
 
         public void Start()
         {
-            _cloud.Exception += Exception;
-            _cloud.StateLoaded += StateLoaded;
-            _cloud.StateSaved += StateSaved;
-            _cloud.ConflictResolver = StateConflict;
+            _gpgs.Exception += Exception;
+            _gpgs.GameLoaded += GameLoaded;
+            _gpgs.GameSaved += GameSaved;
         }
 
         public void Sync()
         {
-            if (!Profile.Instance.Premium || _cloud.Busy) return;
+            if (!Profile.Instance.Premium || _gpgs.Busy) return;
 
             WriteSyncMessage("%Connecting%");
             Initialize();
-            _cloud.Load();
+            _gpgs.Load(SaveName);
         }
 
         public void Reset()
         {
-            if (!Profile.Instance.Premium || _cloud.Busy) return;
+            if (!Profile.Instance.Premium || _gpgs.Busy) return;
 
             WriteSyncMessage("%Connecting%");
             Initialize();
-            _cloud.Save(new[] { NullByte });
+            _reset = true;
+            _gpgs.Load(SaveName);
         }
 
         private void Initialize()
         {
             _storageChanged = false;
-            _errorMessage = null;
+            _exception = null;
+            _reset = false;
         }
 
-        private void Exception(PlayGamesPlatformClient.ErrorCodes errorCode, string errorMessage)
+        private void Exception(GamesServicesClient.ErrorCodes errorCode, string errorMessage)
         {
             switch (errorCode)
             {
-                case PlayGamesPlatformClient.ErrorCodes.AuthenticationError:
+                case GamesServicesClient.ErrorCodes.AuthenticationError:
                     WriteSyncMessage("%AuthenticationError%");
                     break;
-                case PlayGamesPlatformClient.ErrorCodes.Exception:
-                    _errorMessage = errorMessage;
+                case GamesServicesClient.ErrorCodes.Exception:
+                    _exception = errorMessage;
                     break;
             }
         }
 
-        private void StateSaved(bool success, int slot)
+        private void GameSaved(bool success)
         {
             if (!success)
             {
                 WriteSyncMessage("%SaveFailed%");
+                return;
             }
-            else if (_errorMessage != null)
+            
+            if (_exception != null)
             {
-                WriteSyncMessage(_errorMessage);
+                WriteSyncMessage(_exception);
+                return;
             }
-            else
+
+            Profile.Instance.SaveSyncTime();
+
+            if (_storageChanged)
             {
-                Profile.Instance.SaveSyncTime();
-
-                if (_storageChanged)
-                {
-                    GetComponent<PatternLock>().Open(TweenDirection.Right);
-                }
-
-                WriteSyncMessage("%Synced%");
+                GetComponent<PatternLock>().Open(TweenDirection.Right);
             }
+
+            WriteSyncMessage("%Synced%");
         }
 
-        private void StateLoaded(bool success, int slot, byte[] data)
+        private void GameLoaded(bool success, ISavedGameMetadata meta, byte[] data)
         {
-            if (!success && Profile.Instance.SyncTime != null)
+            if (!success)
             {
                 WriteSyncMessage("%LoadFailed%");
+                return;
             }
-            else if (_errorMessage != null)
+
+            if (_exception != null)
             {
-                WriteSyncMessage(_errorMessage);
+                WriteSyncMessage(_exception);
+                return;
             }
-            else if (IsEmpty(data))
+
+            if (_reset)
+            {
+                _gpgs.Save(meta, new[] { NullByte });
+                return;
+            }
+
+            if (IsEmpty(data))
             {
                 if (Profile.Instance.CountCards() == 0)
                 {
@@ -101,19 +116,18 @@ namespace Assets.Scripts
                 }
                 else
                 {
-                    _cloud.Save(Profile.Instance.Encrypt());
+                    _gpgs.Save(meta, Profile.Instance.Encrypt());
                 }
             }
             else
             {
                 try
                 {
-                    WriteSyncMessage("%ResolvingData%");
                     _storageChanged = Profile.Instance.Merge(Encoding.UTF8.GetString(data));
 
                     if (Profile.Instance.ReadyForSave)
                     {
-                        _cloud.Save(Profile.Instance.Encrypt());
+                        _gpgs.Save(meta, Profile.Instance.Encrypt());
                     }
                     else
                     {
@@ -127,28 +141,6 @@ namespace Assets.Scripts
                     WriteSyncMessage(e.Message);
                 }
             }
-        }
-
-        private byte[] StateConflict(int slot, byte[] localData, byte[] serverData)
-        {
-            WriteSyncMessage("%ResolvingData%");
-
-            if (localData != null && localData[0] == NullByte)
-            {
-                return localData;
-            }
-
-            if (IsEmpty(localData))
-            {
-                return serverData;
-            }
-            
-            if (IsEmpty(serverData))
-            {
-                return localData;
-            }
-
-            return Profile.Sync.Merge(Encoding.UTF8.GetString(localData), Encoding.UTF8.GetString(serverData));
         }
 
         private static bool IsEmpty(byte[] data)

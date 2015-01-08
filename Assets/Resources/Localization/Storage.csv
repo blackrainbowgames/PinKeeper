@@ -9,9 +9,8 @@
 %Sync%;синхронизация;cloud sync
 %SyncReady%;еще не выполнялась;not synchronized yet
 %Connecting%;соединение...;connecting...
-%AuthenticationError%;ошибка авторизации;authorization error
+%AuthenticationError%;ошибка сети;network error
 %LoadingData%;загрузка данных...;loading data...
-%ResolvingData%;разрешение конфликтов...;resolving conflicts...
 %Synced%;завершено;completed
 %SaveFailed%;ошибка при сохранении;cloud save failed
 %LoadFailed%;ошибка при загрузке;cloud load failed

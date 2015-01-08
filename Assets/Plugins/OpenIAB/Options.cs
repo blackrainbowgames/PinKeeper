@@ -61,6 +61,8 @@ namespace OnePF
          */
         public OptionsVerifyMode verifyMode = OptionsVerifyMode.VERIFY_EVERYTHING;
 
+        public SearchStrategy storeSearchStrategy = SearchStrategy.INSTALLER;
+
         /** 
          * storeKeys is map of [ appstore name -> publicKeyBase64 ] 
          * Put keys for all stores you support in this Map and pass it to instantiate {@link OpenIabHelper} 
@@ -82,5 +84,9 @@ namespace OnePF
          * multiple stores installed on device that supports billing.
          */
         public string[] prefferedStoreNames = new string[] { };
+
+        public string[] availableStoreNames = new string[] { };
+
+        public int samsungCertificationRequestCode;
     }
 }

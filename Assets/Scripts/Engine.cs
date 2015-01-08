@@ -2,6 +2,7 @@
 using System.Linq;
 using Assets.Scripts.Common;
 using Assets.Scripts.Views;
+using GooglePlayGames;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -103,7 +104,7 @@ namespace Assets.Scripts
         {
             if (Profile.Instance.LockTime != null)
             {
-                Application.Quit();
+                Quit();
 
                 return;
             }
@@ -124,12 +125,18 @@ namespace Assets.Scripts
 
             if (!passed || ViewBase.Current is Storage)
             {
-                Application.Quit();
+                Quit();
             }
             else
             {
                 GetComponent<Storage>().Open(TweenDirection.Left);
             }
+        }
+
+        private static void Quit()
+        {
+            //GamesServicesClient.SignOut();
+            Application.Quit();
         }
     }
 }
