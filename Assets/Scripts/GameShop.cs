@@ -20,11 +20,13 @@ namespace Assets.Scripts
                 discoveryTimeoutMs = Options.DISCOVER_TIMEOUT_MS * 2,
                 checkInventory = false,
                 verifyMode = OptionsVerifyMode.VERIFY_SKIP,
-                prefferedStoreNames = new[] { OpenIAB_Android.STORE_GOOGLE },
+                prefferedStoreNames = new[] { PlanformDependedSettings.StoreName },
+                availableStoreNames = new[] { PlanformDependedSettings.StoreName },
                 storeKeys = new Dictionary<string, string>
                 {
                     { PlanformDependedSettings.StoreName, PlanformDependedSettings.StorePublicKey }
-                }
+                },
+                storeSearchStrategy = SearchStrategy.INSTALLER_THEN_BEST_FIT
             };
 
             _openIabClient = new OpenIABClient(options);

@@ -136,7 +136,7 @@ namespace Assets.Scripts.Common
             {
                 WriteLog("authentication...");
 
-                var config = new PlayGamesClientConfiguration.Builder().EnableDeprecatedCloudSave().EnableSavedGames().Build();
+                var config = new PlayGamesClientConfiguration.Builder().EnableSavedGames().Build();
 
                 PlayGamesPlatform.InitializeInstance(config);
                 PlayGamesPlatform.DebugLogEnabled = true;

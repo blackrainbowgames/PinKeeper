@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using UnityEngine;
 
 namespace Assets.Scripts.Common
 {
@@ -15,8 +16,38 @@ namespace Assets.Scripts.Common
     public static class AES
     {
         public static int KeyLength = 128;
-        private const string SaltKey = "ShMG8hLyZ7k~Ge5@";
-        private const string VIKey = "~6YUi0Sv5@|{aOZO";
+
+        public static string SaltKey
+        {
+            get
+            {
+                return PlayerPrefs.HasKey("SK") ? PlayerPrefs.GetString("SK") : "ShMG8hLyZ7k~Ge5@";
+            }
+            set
+            {
+                PlayerPrefs.SetString("SaltKey", value);
+                PlayerPrefs.Save();
+            }
+        }
+
+        public static string VIKey
+        {
+            get
+            {
+                return PlayerPrefs.HasKey("VI") ? PlayerPrefs.GetString("VI") : "~6YUi0Sv5@|{aOZO";
+            }
+            set
+            {
+                PlayerPrefs.SetString("SaltKey", value);
+                PlayerPrefs.Save();
+            }
+        }
+
+        public static void Initialize()
+        {
+            SaltKey = Md5.Encode(Convert.ToString(CRandom.GetRandom(999999))).Substring(0, 16);
+            VIKey = Md5.Encode(Convert.ToString(CRandom.GetRandom(999999))).Substring(0, 16);
+        }
 
         public static string Encrypt(byte[] value, string password)
         {

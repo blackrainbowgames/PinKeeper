@@ -16,6 +16,7 @@ namespace Assets.Scripts.Views
         private static readonly List<UISprite> Cells = new List<UISprite>();
         private static readonly List<UISprite> Circles = new List<UISprite>();
         private const float TweenTime = 0.25f;
+        private static bool _hidden;
 
         public new void Start()
         {
@@ -39,6 +40,11 @@ namespace Assets.Scripts.Views
             {
                 ProcessKey();
             }
+        }
+
+        public void HidePattern()
+        {
+            _hidden = !_hidden;
         }
 
         private void CreateGrid()
@@ -88,6 +94,8 @@ namespace Assets.Scripts.Views
                 }
             }
 
+            if (_hidden) return;
+
             if (Input.Count > 0)
             {
                 if (Polyline.Count == Input.Count)
@@ -104,6 +112,9 @@ namespace Assets.Scripts.Views
         private static void KeyPressed(int i)
         {
             Input.Add(i);
+
+            if (_hidden) return;
+
             Circles[i].color = Colors.Blue.SetAlpha(0);
             TweenAlpha.Begin(Circles[i].gameObject, 0, 1);
         }
@@ -113,29 +124,29 @@ namespace Assets.Scripts.Views
             if (Input.Count <= 0) return;
 
             var success = base.ProcessKey(new ProtectedValue(string.Join(string.Empty, Input.Select(i => i.ToString("X")).ToArray())));
-            var color = success ? Colors.Green : Colors.Red;
 
-            foreach (var key in Input)
+            if (!_hidden)
             {
-                TweenColor.Begin(Circles[key].gameObject, TweenTime, color);
-                TweenColor.Begin(Cells[key].gameObject, TweenTime, color);
+
+                var color = success ? Colors.Green : Colors.Red;
+
+                foreach (var key in Input)
+                {
+                    TweenColor.Begin(Circles[key].gameObject, TweenTime, color);
+                    TweenColor.Begin(Cells[key].gameObject, TweenTime, color);
+                }
+
+                Destroy(Polyline.Last().gameObject);
+                Polyline.RemoveAt(Polyline.Count - 1);
+                RedrawPolyline(color);
             }
 
-            Destroy(Polyline.Last().gameObject);
-            Polyline.RemoveAt(Polyline.Count - 1);
-
-            RedrawPolyline(color);
             Input.Clear();
-
             enabled = false;
 
             if (!success)
             {
-                TaskScheduler.CreateTask(() =>
-                {
-                    ClearPattern();
-                    enabled = true;
-                }, TaskId, 1);
+                TaskScheduler.CreateTask(() => { ClearPattern(); enabled = true; }, TaskId, 1);
             }
         }
 
@@ -153,6 +164,8 @@ namespace Assets.Scripts.Views
 
         private static void ClearPattern()
         {
+            if (_hidden) return;
+
             DestroyPolyline();
 
             foreach (var circle in Circles)

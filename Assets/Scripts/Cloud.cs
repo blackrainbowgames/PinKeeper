@@ -11,7 +11,7 @@ namespace Assets.Scripts
     {
         public UILabel SyncInfo;
 
-        private readonly GamesServicesClient _gpgs = new GamesServicesClient();
+        private readonly GamesServicesClient _cloud = new GamesServicesClient();
         private bool _storageChanged;
         private string _exception;
         private const byte NullByte = 255;
@@ -20,28 +20,28 @@ namespace Assets.Scripts
 
         public void Start()
         {
-            _gpgs.Exception += Exception;
-            _gpgs.GameLoaded += GameLoaded;
-            _gpgs.GameSaved += GameSaved;
+            _cloud.Exception += Exception;
+            _cloud.GameLoaded += GameLoaded;
+            _cloud.GameSaved += GameSaved;
         }
 
         public void Sync()
         {
-            if (!Profile.Instance.Premium || _gpgs.Busy) return;
+            if (!Profile.Instance.Premium || _cloud.Busy) return;
 
             WriteSyncMessage("%Connecting%");
             Initialize();
-            _gpgs.Load(SaveName);
+            _cloud.Load(SaveName);
         }
 
         public void Reset()
         {
-            if (!Profile.Instance.Premium || _gpgs.Busy) return;
+            if (!Profile.Instance.Premium || _cloud.Busy) return;
 
             WriteSyncMessage("%Connecting%");
             Initialize();
             _reset = true;
-            _gpgs.Load(SaveName);
+            _cloud.Load(SaveName);
         }
 
         private void Initialize()
@@ -104,7 +104,7 @@ namespace Assets.Scripts
 
             if (_reset)
             {
-                _gpgs.Save(meta, new[] { NullByte });
+                _cloud.Save(meta, new[] { NullByte });
                 return;
             }
 
@@ -116,7 +116,7 @@ namespace Assets.Scripts
                 }
                 else
                 {
-                    _gpgs.Save(meta, Profile.Instance.Encrypt());
+                    _cloud.Save(meta, Profile.Instance.Encrypt());
                 }
             }
             else
@@ -127,7 +127,7 @@ namespace Assets.Scripts
 
                     if (Profile.Instance.ReadyForSave)
                     {
-                        _gpgs.Save(meta, Profile.Instance.Encrypt());
+                        _cloud.Save(meta, Profile.Instance.Encrypt());
                     }
                     else
                     {

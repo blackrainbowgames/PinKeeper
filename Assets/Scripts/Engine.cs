@@ -2,7 +2,6 @@
 using System.Linq;
 using Assets.Scripts.Common;
 using Assets.Scripts.Views;
-using GooglePlayGames;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -29,19 +28,6 @@ namespace Assets.Scripts
 
         public void Update()
         {
-            if (Input.GetMouseButtonDown(0))
-            {
-                _down = DateTime.UtcNow;
-            }
-            else if (Input.GetMouseButton(0))
-            {
-                if (DateTime.UtcNow > _down.AddSeconds(5))
-                {
-                    GetComponent<DebugConsole>().enabled = !GetComponent<DebugConsole>().enabled;
-                    _down = DateTime.UtcNow;
-                }
-            }
-
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 Back();
@@ -135,7 +121,6 @@ namespace Assets.Scripts
 
         private static void Quit()
         {
-            //GamesServicesClient.SignOut();
             Application.Quit();
         }
     }

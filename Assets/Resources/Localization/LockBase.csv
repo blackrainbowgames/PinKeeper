@@ -1,5 +1,6 @@
 ﻿;Russian;English
 
+%HidePattern%;/ скрыть ключ /;/ hide pattern /
 %DrawPattern%;введите графический ключ;draw pattern
 %CreatePattern%;создайте графический ключ;create pattern
 %DrawMoreComplexPattern%;придумайте более сложный ключ;draw more complex pattern

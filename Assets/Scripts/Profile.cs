@@ -24,6 +24,7 @@ namespace Assets.Scripts
         
         private Profile()
         {
+            AES.Initialize();
         }
 
         public static Profile Instance
