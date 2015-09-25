@@ -11,8 +11,7 @@ namespace Assets.Scripts
         public UILabel PremiumInfo;
         private OpenIABClient _openIabClient;
         private const string SkuPremium = PlanformDependedSettings.SkuPremium;
-
-
+        
         public void Start()
         {
             var options = new Options
